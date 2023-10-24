@@ -31,6 +31,7 @@ import ch.njol.skript.util.Container;
 import ch.njol.skript.util.Container.ContainerType;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -90,7 +91,11 @@ public class SecLoop extends Section {
 	protected TriggerItem walk(Event e) {
 		Iterator<?> iter = currentIter.get(e);
 		if (iter == null) {
-			iter = expr instanceof Variable ? ((Variable<?>) expr).variablesIterator(e) : expr.iterator(e);
+			iter = expr instanceof Variable ?
+				((Variable<?>) expr).variablesIterator(e) :
+					expr instanceof LinkVariable<?, ?> lv ?
+					lv.variablesIterator(e) :
+						expr.iterator(e);
 			if (iter != null) {
 				if (iter.hasNext())
 					currentIter.put(e, iter);
