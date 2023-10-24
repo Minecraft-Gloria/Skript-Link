@@ -49,12 +49,12 @@ task checkAliases {
 
 task jar(overwrite: true, type: ShadowJar) {
 	dependsOn checkAliases
-	archiveName jarName ? 'Skript.jar' : jarName
+	archiveName jarName ? 'Skript-2.6.4-Link.jar' : jarName
 	from sourceSets.main.output
 }
 
 task build(overwrite: true, type: ShadowJar) {
-	archiveName jarName ? 'Skript.jar' : jarName
+	archiveName jarName ? 'Skript-2.6.4-Link.jar' : jarName
 	from sourceSets.main.output
 }
 
@@ -170,7 +170,7 @@ void createTestTask(String name, String environments, boolean devMode, int javaV
 		}
 		group = 'execution'
 		classpath = files([
-			'build' + File.separator + 'libs' + File.separator + 'Skript.jar',
+			'build' + File.separator + 'libs' + File.separator + 'Skript-2.6.4-Link.jar',
 			project.configurations.runtimeClasspath.find { it.name.startsWith('gson') },
 			sourceSets.main.runtimeClasspath
 		])

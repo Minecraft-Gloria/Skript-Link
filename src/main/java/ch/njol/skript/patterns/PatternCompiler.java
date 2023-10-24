@@ -163,6 +163,10 @@ public class PatternCompiler {
 			} else if (c == '\\') {
 				i++;
 				literalBuilder.append(pattern.charAt(i));
+			} else if (c == '「') {
+				literalBuilder.append('<');
+			} else if (c == '」') {
+				literalBuilder.append('>');
 			} else {
 				literalBuilder.append(c);
 			}
