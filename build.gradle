@@ -13,6 +13,7 @@ plugins {
 
 allprojects {
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
 		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
@@ -31,6 +32,7 @@ dependencies {
 	implementation group: 'net.milkbowl.vault', name: 'Vault', version: '1.7.1', {
 		exclude group: 'org.bstats', module: 'bstats-bukkit'
 	}
+	implementation group: 'me.marquez', name: 'variablelink-skriptaddon', version: '1.0.1'
 	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 

@@ -51,6 +51,7 @@ import ch.njol.util.NonNullPair;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.primitives.Booleans;
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.eclipse.jdt.annotation.Nullable;
@@ -273,6 +274,7 @@ public class SkriptParser {
 	
 	@SuppressWarnings("null")
 	private final static Pattern varPattern = Pattern.compile("((the )?var(iable)? )?\\{.+\\}", Pattern.CASE_INSENSITIVE);
+	private final static Pattern linkVarPattern = Pattern.compile("((the )?var(iable)? )?<.+>", Pattern.CASE_INSENSITIVE);
 	
 	/**
 	 * Prints errors
@@ -300,6 +302,30 @@ public class SkriptParser {
 		}
 		return null;
 	}
+
+	@Nullable
+	private static <T> LinkVariable<T> parseLinkVariable(final String expr, final Class<? extends T>[] returnTypes) {
+		if (linkVarPattern.matcher(expr).matches()) {
+			String variableName = "" + expr.substring(expr.indexOf('<') + 1, expr.lastIndexOf('>'));
+			boolean inExpression = false;
+			int variableDepth = 0;
+			for (char c : variableName.toCharArray()) {
+				if (c == '%' && variableDepth == 0)
+					inExpression = !inExpression;
+				if (inExpression) {
+					if (c == '<') {
+						variableDepth++;
+					} else if (c == '>')
+						variableDepth--;
+				}
+
+				if (!inExpression && (c == '<' || c == '>'))
+					return null;
+			}
+			return LinkVariable.newInstance(variableName, returnTypes);
+		}
+		return null;
+	}
 	
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Nullable
@@ -313,6 +339,19 @@ public class SkriptParser {
 		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
+				final LinkVariable<? extends T> linkVar = parseLinkVariable(expr, types);
+				if (linkVar != null) {
+					if ((flags & PARSE_EXPRESSIONS) == 0) {
+						Skript.error("LinkVariables cannot be used here.");
+						log.printError();
+						return null;
+					}
+					log.printLog();
+					return linkVar;
+				} else if (log.hasError()) {
+					log.printError();
+					return null;
+				}
 				final Variable<? extends T> var = parseVariable(expr, types);
 				if (var != null) {
 					if ((flags & PARSE_EXPRESSIONS) == 0) {
@@ -445,6 +484,27 @@ public class SkriptParser {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
 				// Attempt to parse variable first
 				if (onlySingular || onlyPlural) { // No mixed plurals/singulars possible
+					final LinkVariable<?> linkVar = parseLinkVariable(expr, nonNullTypes);
+					if (linkVar != null) { // Parsing succeeded, we have a variable
+						// If variables cannot be used here, it is now allowed
+						if ((flags & PARSE_EXPRESSIONS) == 0) {
+							Skript.error("LinkVariables cannot be used here.");
+							log.printError();
+							return null;
+						}
+
+						// Plural/singular sanity check
+						if (hasSingular && !linkVar.isSingle()) {
+							Skript.error("'" + expr + "' can only accept a single value of any type, not more", ErrorQuality.SEMANTIC_ERROR);
+							return null;
+						}
+
+						log.printLog();
+						return linkVar;
+					} else if (log.hasError()) {
+						log.printError();
+						return null;
+					}
 					final Variable<?> var = parseVariable(expr, nonNullTypes);
 					if (var != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
@@ -467,6 +527,28 @@ public class SkriptParser {
 						return null;
 					}
 				} else { // Mixed plurals/singulars
+					final LinkVariable<?> linkVar = parseLinkVariable(expr, types);
+					if (linkVar != null) { // Parsing succeeded, we have a variable
+						// If variables cannot be used here, it is now allowed
+						if ((flags & PARSE_EXPRESSIONS) == 0) {
+							Skript.error("LinkVariables cannot be used here.");
+							log.printError();
+							return null;
+						}
+						if (((vi.classes.length == 1 && !vi.isPlural[0]) || Booleans.contains(vi.isPlural, true))
+							&& !linkVar.isSingle()) {
+							Skript.error("'" + expr + "' can only accept a single "
+								+ Classes.toString(Stream.of(vi.classes).map(ci -> ci.getName().toString()).toArray(), false)
+								+ ", not more", ErrorQuality.SEMANTIC_ERROR);
+							return null;
+						}
+
+						log.printLog();
+						return linkVar;
+					} else if (log.hasError()) {
+						log.printError();
+						return null;
+					}
 					final Variable<?> var = parseVariable(expr, types);
 					if (var != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
