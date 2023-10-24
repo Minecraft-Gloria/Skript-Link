@@ -93,8 +93,8 @@ public class SecLoop extends Section {
 		if (iter == null) {
 			iter = expr instanceof Variable ?
 				((Variable<?>) expr).variablesIterator(e) :
-					expr instanceof LinkVariable<?, ?> lv ?
-					lv.variablesIterator(e) :
+					expr instanceof LinkVariable<?, ?> ?
+						((LinkVariable<?, ?>)expr).variablesIterator(e) :
 						expr.iterator(e);
 			if (iter != null) {
 				if (iter.hasNext())
