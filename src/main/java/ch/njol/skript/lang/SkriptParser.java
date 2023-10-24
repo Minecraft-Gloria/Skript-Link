@@ -48,6 +48,7 @@ import ch.njol.skript.util.ScriptOptions;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.NonNullPair;
+import ch.njol.util.Pair;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.primitives.Booleans;
@@ -304,7 +305,7 @@ public class SkriptParser {
 	}
 
 	@Nullable
-	private static <T> LinkVariable<T> parseLinkVariable(final String expr, final Class<? extends T>[] returnTypes) {
+	private static <T> LinkVariable<T, ?> parseLinkVariable(final String expr, final Class<? extends T>[] returnTypes) {
 		if (linkVarPattern.matcher(expr).matches()) {
 			String variableName = "" + expr.substring(expr.indexOf('<') + 1, expr.lastIndexOf('>'));
 			boolean inExpression = false;
@@ -339,7 +340,7 @@ public class SkriptParser {
 		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
-				final LinkVariable<? extends T> linkVar = parseLinkVariable(expr, types);
+				final LinkVariable<? extends T, ?> linkVar = parseLinkVariable(expr, types);
 				if (linkVar != null) {
 					if ((flags & PARSE_EXPRESSIONS) == 0) {
 						Skript.error("LinkVariables cannot be used here.");
@@ -484,7 +485,7 @@ public class SkriptParser {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
 				// Attempt to parse variable first
 				if (onlySingular || onlyPlural) { // No mixed plurals/singulars possible
-					final LinkVariable<?> linkVar = parseLinkVariable(expr, nonNullTypes);
+					final LinkVariable<?, ?> linkVar = parseLinkVariable(expr, nonNullTypes);
 					if (linkVar != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
 						if ((flags & PARSE_EXPRESSIONS) == 0) {
@@ -527,7 +528,7 @@ public class SkriptParser {
 						return null;
 					}
 				} else { // Mixed plurals/singulars
-					final LinkVariable<?> linkVar = parseLinkVariable(expr, types);
+					final LinkVariable<?, ?> linkVar = parseLinkVariable(expr, types);
 					if (linkVar != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
 						if ((flags & PARSE_EXPRESSIONS) == 0) {
@@ -1315,7 +1316,10 @@ public class SkriptParser {
 			final int i2 = nextQuote(expr, i + 1);
 			return i2 < 0 ? -1 : i2 + 1;
 		} else if (c == '{') {
-			final int i2 = VariableString.nextVariableBracket(expr, i + 1);
+			final int i2 = VariableString.nextVariableBracket(expr, i + 1, new Pair<>('{', '}'));
+			return i2 < 0 ? -1 : i2 + 1;
+		} else if (c == '<') {
+			final int i2 = VariableString.nextVariableBracket(expr, i + 1, new Pair<>('<', '>'));
 			return i2 < 0 ? -1 : i2 + 1;
 		} else if (c == '(') {
 			for (int j = i + 1; j >= 0 && j < expr.length(); j = next(expr, j, context)) {

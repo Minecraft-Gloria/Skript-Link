@@ -1083,8 +1083,8 @@ public class ScriptLoader {
 	 * Replaces options in a string.
 	 */
 	public static String replaceOptions(String s) {
-		String r = StringUtils.replaceAll(s, "\\{@(.+?)\\}", m -> {
-			String option = getParser().getCurrentOptions().get(m.group(1));
+		String r = StringUtils.replaceAll(s, "(\\{|<)@(.+?)(>|\\})", m -> {
+			String option = getParser().getCurrentOptions().get(m.group(2));
 			if (option == null) {
 				Skript.error("undefined option " + m.group());
 				return m.group();

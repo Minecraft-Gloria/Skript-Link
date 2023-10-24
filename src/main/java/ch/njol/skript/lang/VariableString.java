@@ -34,6 +34,7 @@ import ch.njol.skript.util.chat.ChatMessages;
 import ch.njol.skript.util.chat.MessageComponent;
 import ch.njol.util.Checker;
 import ch.njol.util.Kleenean;
+import ch.njol.util.Pair;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.SingleItemIterator;
@@ -177,7 +178,12 @@ public class VariableString implements Expression<String> {
 			return s.substring(1, s.length() - 1).replace("\"\"", "\"");
 		return s.replace("\"\"", "\"");
 	}
-	
+
+	@Nullable
+	public static VariableString newInstance(String orig, StringMode mode) {
+		return newInstance(orig, mode, new Pair<>('{', '}'));
+	}
+
 	/**
 	 * Creates an instance of VariableString by parsing given string.
 	 * Prints errors and returns null if it is somehow invalid.
@@ -186,7 +192,7 @@ public class VariableString implements Expression<String> {
 	 * @return A new VariableString instance.
 	 */
 	@Nullable
-	public static VariableString newInstance(String orig, StringMode mode) {
+	public static VariableString newInstance(String orig, StringMode mode, Pair<Character, Character> variableBrackets) {
 		if (mode != StringMode.VARIABLE_NAME && !isQuotedCorrectly(orig, false))
 			return null;
 		int n = StringUtils.count(orig, '%');
@@ -221,62 +227,7 @@ public class VariableString implements Expression<String> {
 		
 		int c = s.indexOf('%');
 		if (c != -1) {
-			if (c != 0)
-				string.add(s.substring(0, c));
-			while (c != s.length()) {
-				int c2 = s.indexOf('%', c + 1);
-				
-				int a = c;
-				int b;
-				while (c2 != -1 && (b = s.indexOf('{', a + 1)) != -1 && b < c2) {
-					a = nextVariableBracket(s, b + 1);
-					if (a == -1) {
-						Skript.error("Missing closing bracket '}' to end variable");
-						return null;
-					}
-					c2 = s.indexOf('%', a + 1);
-				}
-				if (c2 == -1) {
-					assert false;
-					return null;
-				}
-				if (c + 1 == c2) {
-					// %% escaped -> one % in result string
-					if (string.size() > 0 && string.get(string.size() - 1) instanceof String) {
-						string.set(string.size() - 1, (String) string.get(string.size() - 1) + "%");
-					} else {
-						string.add("%");
-					}
-				} else {
-					RetainingLogHandler log = SkriptLogger.startRetainingLog();
-					try {
-						Expression<?> expr =
-							new SkriptParser(s.substring(c + 1, c2), SkriptParser.PARSE_EXPRESSIONS, ParseContext.DEFAULT)
-								.parseExpression(Object.class);
-						if (expr == null) {
-							log.printErrors("Can't understand this expression: " + s.substring(c + 1, c2));
-							return null;
-						} else {
-							string.add(expr);
-						}
-						log.printLog();
-					} finally {
-						log.stop();
-					}
-				}
-				c = s.indexOf('%', c2 + 1);
-				if (c == -1)
-					c = s.length();
-				String l = s.substring(c2 + 1, c); // Try to get string (non-variable) part
-				if (!l.isEmpty()) { // This is string part (no variables)
-					if (string.size() > 0 && string.get(string.size() - 1) instanceof String) {
-						// We can append last string part in the list, so let's do so
-						string.set(string.size() - 1, (String) string.get(string.size() - 1) + l);
-					} else { // Can't append, just add new part
-						string.add(l);
-					}
-				}
-			}
+			checkSentence(s, c, string, variableBrackets);
 		} else {
 			// Only one string, no variable parts
 			string.add(s);
@@ -297,6 +248,66 @@ public class VariableString implements Expression<String> {
 		return new VariableString(orig, sa, mode);
 	}
 
+	private static boolean checkSentence(String s, int c, List<Object> string, Pair<Character, Character> brackets) {
+		if (c != 0)
+			string.add(s.substring(0, c));
+		while (c != s.length()) {
+			int c2 = s.indexOf('%', c + 1);
+
+			int a = c;
+			int b;
+			while (c2 != -1 && (b = s.indexOf(brackets.getFirst().charValue(), a + 1)) != -1 && b < c2) {
+				a = nextVariableBracket(s, b + 1, brackets);
+				if (a == -1) {
+					Skript.error("Missing closing bracket '}' to end variable");
+					return false;
+				}
+				c2 = s.indexOf('%', a + 1);
+			}
+			if (c2 == -1) {
+				assert false;
+				return false;
+			}
+			if (c + 1 == c2) {
+				// %% escaped -> one % in result string
+				if (string.size() > 0 && string.get(string.size() - 1) instanceof String) {
+					string.set(string.size() - 1, (String) string.get(string.size() - 1) + "%");
+				} else {
+					string.add("%");
+				}
+			} else {
+				RetainingLogHandler log = SkriptLogger.startRetainingLog();
+				try {
+					Expression<?> expr =
+						new SkriptParser(s.substring(c + 1, c2), SkriptParser.PARSE_EXPRESSIONS, ParseContext.DEFAULT)
+							.parseExpression(Object.class);
+					if (expr == null) {
+						log.printErrors("Can't understand this expression: " + s.substring(c + 1, c2));
+						return false;
+					} else {
+						string.add(expr);
+					}
+					log.printLog();
+				} finally {
+					log.stop();
+				}
+			}
+			c = s.indexOf('%', c2 + 1);
+			if (c == -1)
+				c = s.length();
+			String l = s.substring(c2 + 1, c); // Try to get string (non-variable) part
+			if (!l.isEmpty()) { // This is string part (no variables)
+				if (string.size() > 0 && string.get(string.size() - 1) instanceof String) {
+					// We can append last string part in the list, so let's do so
+					string.set(string.size() - 1, (String) string.get(string.size() - 1) + l);
+				} else { // Can't append, just add new part
+					string.add(l);
+				}
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * Copied from {@code SkriptParser#nextBracket(String, char, char, int, boolean)}, but removed escaping & returns -1 on error.
 	 * 
@@ -304,14 +315,14 @@ public class VariableString implements Expression<String> {
 	 * @param start Index after the opening bracket
 	 * @return The next closing curly bracket
 	 */
-	public static int nextVariableBracket(String s, int start) {
+	public static int nextVariableBracket(String s, int start, Pair<Character, Character> brackets) {
 		int n = 0;
 		for (int i = start; i < s.length(); i++) {
-			if (s.charAt(i) == '}') {
+			if (s.charAt(i) == brackets.getSecond().charValue()) {
 				if (n == 0)
 					return i;
 				n--;
-			} else if (s.charAt(i) == '{') {
+			} else if (s.charAt(i) == brackets.getFirst().charValue()) {
 				n++;
 			}
 		}
