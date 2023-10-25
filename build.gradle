@@ -33,6 +33,7 @@ dependencies {
 		exclude group: 'org.bstats', module: 'bstats-bukkit'
 	}
 	implementation group: 'me.marquez', name: 'variablelink-skriptaddon', version: '1.0.1'
+	implementation group: 'me.marquez', name: 'variablelink-api', version: '1.0.1'
 	implementation fileTree(dir: 'lib', include: '*.jar')
 }
 

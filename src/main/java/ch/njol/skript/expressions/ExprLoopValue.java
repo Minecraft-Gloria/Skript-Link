@@ -37,6 +37,7 @@ import ch.njol.skript.registrations.Converters;
 import ch.njol.skript.sections.SecLoop;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -115,6 +116,10 @@ public class ExprLoopValue extends SimpleExpression<Object> {
 		if (loop.getLoopedExpression() instanceof Variable) {
 			isVariableLoop = true;
 			if (((Variable<?>) loop.getLoopedExpression()).isIndexLoop(s))
+				isIndex = true;
+		}else if (loop.getLoopedExpression() instanceof LinkVariable<?,?>) {
+			isVariableLoop = true;
+			if (((LinkVariable<?, ?>) loop.getLoopedExpression()).isIndexLoop(s))
 				isIndex = true;
 		}
 		this.loop = loop;

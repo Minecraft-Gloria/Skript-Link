@@ -296,6 +296,7 @@ public class Variable<T> implements Expression<T> {
 	@Nullable
 	public Object getRaw(Event e) {
 		String n = name.toString(e);
+		System.out.println("Skript getRaw: " + n);
 		if (n.endsWith(Variable.SEPARATOR + "*") != list) // prevents e.g. {%expr%} where "%expr%" ends with "::*" from returning a Map
 			return null;
 		Object val = !list ? convertIfOldPlayer(n, e, Variables.getVariable(n, e, local)) : Variables.getVariable(n, e, local);
@@ -464,12 +465,14 @@ public class Variable<T> implements Expression<T> {
 	}
 
 	private void set(Event e, @Nullable Object value) {
+		System.out.println("Skript set: " + name.toString(e));
 		Variables.setVariable("" + name.toString(e), value, e, local);
 	}
 
 	private void setIndex(Event e, String index, @Nullable Object value) {
 		assert list;
 		String s = name.toString(e);
+		System.out.println("Skript setIndex: " + s);
 		assert s.endsWith("::*") : s + "; " + name;
 		Variables.setVariable(s.substring(0, s.length() - 1) + index, value, e, local);
 	}

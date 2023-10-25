@@ -90,6 +90,7 @@ import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.CheckedIterator;
 import ch.njol.util.coll.iterator.EnumerationIterable;
 import com.google.gson.Gson;
+import me.marquez.variablelink.api.VariableLinkAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -1120,6 +1121,7 @@ public final class Skript extends JavaPlugin implements Listener {
 
 	@Override
 	public void onDisable() {
+		VariableLinkAPI.getSystemVariableManager().saveAll();
 		if (disabled)
 			return;
 		disabled = true;
