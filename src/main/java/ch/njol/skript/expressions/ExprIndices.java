@@ -35,8 +35,10 @@ import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 @Name("Indices of List")
 @Description({
@@ -68,7 +70,7 @@ public class ExprIndices extends SimpleExpression<String> {
 	}
 
 	@SuppressWarnings({"null", "NotNullFieldNotInitialized"})
-	private Variable<?> list;
+	private Expression<?> list;
 
 	private boolean sort;
 	private boolean descending;
@@ -77,9 +79,11 @@ public class ExprIndices extends SimpleExpression<String> {
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		sort = matchedPattern > 1;
 		descending = parseResult.mark == 1;
-		if ((exprs[0] instanceof Variable<?> && ((Variable<?>) exprs[0]).isList()) ||
-			(exprs[0] instanceof LinkVariable<?, ?> && ((LinkVariable<?, ?>) exprs[0]).isList())) {
+		if (exprs[0] instanceof Variable<?> && ((Variable<?>) exprs[0]).isList()) {
 			list = (Variable<?>) exprs[0];
+			return true;
+		}else if(exprs[0] instanceof LinkVariable<?, ?> && ((LinkVariable<?, ?>) exprs[0]).isList()) {
+			list = (LinkVariable<?, ?>) exprs[0];
 			return true;
 		}
 
@@ -95,21 +99,34 @@ public class ExprIndices extends SimpleExpression<String> {
 	@Override
 	@SuppressWarnings({"unchecked", "ConstantConditions"})
 	protected String[] get(Event e) {
-		Map<String, Object> variable = (Map<String, Object>) list.getRaw(e);
+		if(list instanceof Variable<?> || (list instanceof LinkVariable<?, ?> && ((LinkVariable<?, ?>)list).isLocal())) {
+			Map<String, Object> variable = null;
+			if(list instanceof Variable<?>)
+				variable = (Map<String, Object>) ((Variable<?>)list).getRaw(e);
+			else if(list instanceof LinkVariable<?, ?>)
+				variable = (Map<String, Object>) ((LinkVariable<?, ?>)list).getRaw(e);
 
-		if (variable == null) {
-			return null;
+			if (variable == null) {
+				return null;
+			}
+
+			if (sort) {
+				int direction = descending ? -1 : 1;
+				return variable.entrySet().stream()
+					.sorted((a, b) -> compare(a, b, direction))
+					.map(Entry::getKey)
+					.toArray(String[]::new);
+			}
+
+			return variable.keySet().toArray(new String[0]);
+		}else if(list instanceof LinkVariable<?,?>) {
+			Set<String> set = ((LinkVariable<?, ?>)list).getIndices(e);
+			if (sort) {
+				return set.stream().sorted(descending ? Comparator.naturalOrder() : Comparator.reverseOrder()).toArray(String[]::new);
+			}
+			return set.toArray(String[]::new);
 		}
-
-		if (sort) {
-			int direction = descending ? -1 : 1;
-			return variable.entrySet().stream()
-				.sorted((a, b) -> compare(a, b, direction))
-				.map(Entry::getKey)
-				.toArray(String[]::new);
-		}
-
-		return variable.keySet().toArray(new String[0]);
+		return null;
 	}
 
 	@Override

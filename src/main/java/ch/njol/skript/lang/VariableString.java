@@ -222,23 +222,26 @@ public class VariableString implements Expression<String> {
 		} else {
 			s = orig;
 		}
-		
+
 		List<Object> string = new ArrayList<>(n / 2 + 2); // List of strings and expressions
 		
 		int c = s.indexOf('%');
 		if (c != -1) {
-			if(checkSentence(s, c, string, new Pair<>('{', '}'))) {
-				System.out.println("after checkSentence: " + string);
-				string.forEach(o -> System.out.println(o instanceof String));
-				return makeResult(orig, s, string, mode);
-			}
-			string.clear();
-			if(checkSentence(s, c, string, new Pair<>('<', '>'))) {
-				System.out.println("after checkSentence: " + string);
-				string.forEach(o -> System.out.println(o instanceof String));
-				return makeResult(orig, s, string, mode);
-			}
-			return null;
+			checkSentence(s, c, string);
+			System.out.println("after checkSentence: " + string);
+			return makeResult(orig, s, string, mode);
+//			if(checkSentence(s, c, string, new Pair<>('<', '>'))) {
+//				System.out.println("after checkSentence: " + string);
+//				string.forEach(o -> System.out.println(o instanceof String));
+//				return makeResult(orig, s, string, mode);
+//			}
+//			string.clear();
+//			if(checkSentence(s, c, string, new Pair<>('{', '}'))) {
+//				System.out.println("after checkSentence: " + string);
+//				string.forEach(o -> System.out.println(o instanceof String));
+//				return makeResult(orig, s, string, mode);
+//			}
+//			return null;
 		} else {
 			// Only one string, no variable parts
 //			string.add(s);
@@ -247,6 +250,7 @@ public class VariableString implements Expression<String> {
 	}
 
 	private static VariableString makeResult(String orig, String s, List<Object> string, StringMode mode) {
+		System.out.println("makeResult: " + orig + " " + s + " " + string);
 		// Check if this isn't actually variable string, and return
 		if (string.size() == 1 && string.get(0) instanceof String)
 			return new VariableString(s);
@@ -262,8 +266,8 @@ public class VariableString implements Expression<String> {
 		return new VariableString(orig, sa, mode);
 	}
 
-	private static boolean checkSentence(String s, int c, List<Object> string, Pair<Character, Character> brackets) {
-		System.out.println("checkSentence: " + s + " " + c + " " + brackets);
+	private static boolean checkSentence(String s, int c, List<Object> string) {
+		System.out.println("checkSentence: " + s + " " + c + " ");
 		if (c != 0) {
 			string.add(s.substring(0, c));
 			System.out.println("string.add substr: " + string);
@@ -273,7 +277,8 @@ public class VariableString implements Expression<String> {
 
 			int a = c;
 			int b;
-			while (c2 != -1 && (b = s.indexOf(brackets.getFirst().charValue(), a + 1)) != -1 && b < c2) {
+			while (c2 != -1 && ((b = s.indexOf('{', a + 1)) == -1 ? b = s.indexOf('<', a + 1) : b)  != -1 && b < c2) {
+				Pair<Character, Character> brackets = s.charAt(b) == '{' ? new Pair<>('{', '}') : new Pair<>('<', '>');
 				a = nextVariableBracket(s, b + 1, brackets);
 				if (a == -1) {
 					Skript.error("Missing closing bracket '" + brackets.getSecond() + "' to end variable");
@@ -296,6 +301,7 @@ public class VariableString implements Expression<String> {
 			} else {
 				RetainingLogHandler log = SkriptLogger.startRetainingLog();
 				try {
+					System.out.println("check sentence: new SkriptParser: " + s.substring(c + 1, c2));
 					Expression<?> expr =
 						new SkriptParser(s.substring(c + 1, c2), SkriptParser.PARSE_EXPRESSIONS, ParseContext.DEFAULT)
 							.parseExpression(Object.class);

@@ -87,7 +87,7 @@ public class SkriptParser {
 	public final static int PARSE_LITERALS = 2;
 	public final static int ALL_FLAGS = PARSE_EXPRESSIONS | PARSE_LITERALS;
 	private final int flags;
-	
+
 	public final ParseContext context;
 	
 	public SkriptParser(final String expr) {
@@ -311,6 +311,8 @@ public class SkriptParser {
 
 	@Nullable
 	private static <T> LinkVariable<T, ?> parseLinkVariable(final String expr, final Class<? extends T>[] returnTypes) {
+		System.out.println("\n\n\n\n\n\n");
+//		new Throwable().printStackTrace();
 		System.out.println("parseLinkVariable");
 		System.out.println(expr);
 		System.out.println(linkVarPattern.matcher(expr));
@@ -352,6 +354,8 @@ public class SkriptParser {
 		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
+//				new Throwable().printStackTrace();
+				System.out.println("parseSingleExpr ParseContext.DEFAULT || ParseContext.EVENT");
 				final LinkVariable<? extends T, ?> linkVar = parseLinkVariable(expr, types);
 				if (linkVar != null) {
 					if ((flags & PARSE_EXPRESSIONS) == 0) {
@@ -528,13 +532,13 @@ public class SkriptParser {
 							log.printError();
 							return null;
 						}
-						
+
 						// Plural/singular sanity check
 						if (hasSingular && !var.isSingle()) {
 							Skript.error("'" + expr + "' can only accept a single value of any type, not more", ErrorQuality.SEMANTIC_ERROR);
 							return null;
 						}
-						
+
 						log.printLog();
 						return var;
 					} else if (log.hasError()) {
@@ -542,6 +546,7 @@ public class SkriptParser {
 						return null;
 					}
 				} else { // Mixed plurals/singulars
+					System.out.println("parseSingleExpr Mixed plurals/singulars");
 					final LinkVariable<?, ?> linkVar = parseLinkVariable(expr, types);
 					if (linkVar != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
@@ -572,7 +577,7 @@ public class SkriptParser {
 							log.printError();
 							return null;
 						}
-						
+
 						// Plural/singular sanity check
 						//
 						// It's (currently?) not possible to detect this at parse time when there are multiple
@@ -585,13 +590,13 @@ public class SkriptParser {
 						// otherwise users may have some hard time debugging the plurality issues) - currently an
 						// improper use in a script would result in an exception
 						if (((vi.classes.length == 1 && !vi.isPlural[0]) || Booleans.contains(vi.isPlural, true))
-								&& !var.isSingle()) {
+							&& !var.isSingle()) {
 							Skript.error("'" + expr + "' can only accept a single "
-									+ Classes.toString(Stream.of(vi.classes).map(ci -> ci.getName().toString()).toArray(), false)
-									+ ", not more", ErrorQuality.SEMANTIC_ERROR);
+								+ Classes.toString(Stream.of(vi.classes).map(ci -> ci.getName().toString()).toArray(), false)
+								+ ", not more", ErrorQuality.SEMANTIC_ERROR);
 							return null;
 						}
-						
+
 						log.printLog();
 						return var;
 					} else if (log.hasError()) {
@@ -735,6 +740,7 @@ public class SkriptParser {
 			final List<int[]> pieces = new ArrayList<>();
 			{
 				final Matcher m = listSplitPattern.matcher(expr);
+				System.out.println("parseExpr m: " + m);
 				int i = 0, j = 0;
 				for (; i >= 0 && i <= expr.length(); i = next(expr, i, context)) {
 					if (i == expr.length() || m.region(i, expr.length()).lookingAt()) {
@@ -744,8 +750,10 @@ public class SkriptParser {
 						j = i = m.end();
 					}
 				}
+				System.out.println("parseExpr i: " + i + " " + expr.length());
 				if (i != expr.length()) {
 					assert i == -1 && context != ParseContext.COMMAND : i + "; " + expr;
+					System.out.println("T");
 					log.printError("Invalid brackets/variables/text in '" + expr + "'", ErrorQuality.NOT_AN_EXPRESSION);
 					return null;
 				}
@@ -873,6 +881,7 @@ public class SkriptParser {
 				}
 				if (i != expr.length()) {
 					assert i == -1 && context != ParseContext.COMMAND : i + "; " + expr;
+					System.out.println("T2");
 					log.printError("Invalid brackets/variables/text in '" + expr + "'", ErrorQuality.NOT_AN_EXPRESSION);
 					return null;
 				}
