@@ -123,6 +123,7 @@ public class TypePatternElement extends PatternElement {
 				if (newMatchResult != null) {
 					ParseLogHandler expressionLogHandler = SkriptLogger.startParseLogHandler();
 					try {
+						System.out.println("TEST 126: " + expr);
 						Expression<?> expression = new SkriptParser(expr.substring(matchResult.exprOffset, newExprOffset), matchResult.flags & flagMask, matchResult.parseContext).parseExpression(exprInfo);
 						if (expression != null) {
 							if (time != 0) {

@@ -170,6 +170,7 @@ public class Variable<T> implements Expression<T> {
 	 */
 	@Nullable
 	public static <T> Variable<T> newInstance(String name, Class<? extends T>[] types) {
+//		new Throwable().printStackTrace(); // TODO: 2023-10-25  
 		name = "" + name.trim();
 		if (!isValidVariableName(name, true, true))
 			return null;

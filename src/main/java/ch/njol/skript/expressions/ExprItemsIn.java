@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
 import org.eclipse.jdt.annotation.Nullable;
@@ -67,7 +68,8 @@ public class ExprItemsIn extends SimpleExpression<Slot> {
 	 */
 	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, @Nullable final ParseResult parseResult) {
 		invis = (Expression<Inventory>) exprs[0];
-		if (invis instanceof Variable && !invis.isSingle() && parseResult.mark != 1)
+		if ((invis instanceof Variable || invis instanceof LinkVariable<?,?>)
+			&& !invis.isSingle() && parseResult.mark != 1)
 			Skript.warning("'items in {variable::*}' does not actually represent the items stored in the variable. Use either '{variable::*}' (e.g. 'loop {variable::*}') if the variable contains items, or 'items in inventories {variable::*}' if the variable contains inventories.");
 		return true;
 	}

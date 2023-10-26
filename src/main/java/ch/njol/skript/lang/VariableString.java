@@ -38,6 +38,7 @@ import ch.njol.util.Pair;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.SingleItemIterator;
+import edu.umd.cs.findbugs.ba.bcp.Variable;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -78,6 +79,7 @@ public class VariableString implements Expression<String> {
 	 * @param s Content for string.
 	 */
 	private VariableString(String s) {
+		System.out.println("new VariableString s");
 		isSimple = true;
 		simpleUnformatted = s.replace("%%", "%"); // This doesn't contain variables, so this wasn't done in newInstance!
 		simple = Utils.replaceChatStyles(simpleUnformatted);
@@ -96,6 +98,8 @@ public class VariableString implements Expression<String> {
 	 * @param mode String mode.
 	 */
 	private VariableString(String orig, Object[] string, StringMode mode) {
+		System.out.println("new VariableString orig str mode");
+//		new Throwable().printStackTrace();
 		this.orig = orig;
 		this.string = new Object[string.length];
 		this.stringUnformatted = new Object[string.length];
@@ -179,11 +183,6 @@ public class VariableString implements Expression<String> {
 		return s.replace("\"\"", "\"");
 	}
 
-	@Nullable
-	public static VariableString newInstance(String orig, StringMode mode) {
-		return newInstance(orig, mode, new Pair<>('{', '}'));
-	}
-
 	/**
 	 * Creates an instance of VariableString by parsing given string.
 	 * Prints errors and returns null if it is somehow invalid.
@@ -192,7 +191,8 @@ public class VariableString implements Expression<String> {
 	 * @return A new VariableString instance.
 	 */
 	@Nullable
-	public static VariableString newInstance(String orig, StringMode mode, Pair<Character, Character> variableBrackets) {
+	public static VariableString newInstance(String orig, StringMode mode) {
+		System.out.println("newInstance: " + orig + " " + mode);
 		if (mode != StringMode.VARIABLE_NAME && !isQuotedCorrectly(orig, false))
 			return null;
 		int n = StringUtils.count(orig, '%');
@@ -227,21 +227,35 @@ public class VariableString implements Expression<String> {
 		
 		int c = s.indexOf('%');
 		if (c != -1) {
-			checkSentence(s, c, string, variableBrackets);
+			if(checkSentence(s, c, string, new Pair<>('{', '}'))) {
+				System.out.println("after checkSentence: " + string);
+				string.forEach(o -> System.out.println(o instanceof String));
+				return makeResult(orig, s, string, mode);
+			}
+			string.clear();
+			if(checkSentence(s, c, string, new Pair<>('<', '>'))) {
+				System.out.println("after checkSentence: " + string);
+				string.forEach(o -> System.out.println(o instanceof String));
+				return makeResult(orig, s, string, mode);
+			}
+			return null;
 		} else {
 			// Only one string, no variable parts
-			string.add(s);
+//			string.add(s);
+			return new VariableString(s);
 		}
-		
+	}
+
+	private static VariableString makeResult(String orig, String s, List<Object> string, StringMode mode) {
 		// Check if this isn't actually variable string, and return
 		if (string.size() == 1 && string.get(0) instanceof String)
 			return new VariableString(s);
-		
+
 		Object[] sa = string.toArray();
 		if (string.size() == 1 && string.get(0) instanceof Expression &&
-				((Expression<?>) string.get(0)).getReturnType() == String.class &&
-				((Expression<?>) string.get(0)).isSingle() &&
-				mode == StringMode.MESSAGE) {
+			((Expression<?>) string.get(0)).getReturnType() == String.class &&
+			((Expression<?>) string.get(0)).isSingle() &&
+			mode == StringMode.MESSAGE) {
 			String expr = ((Expression<?>) string.get(0)).toString(null, false);
 			Skript.warning(expr + " is already a text, so you should not put it in one (e.g. " + expr + " instead of " + "\"%" + expr.replace("\"", "\"\"") + "%\")");
 		}
@@ -249,8 +263,11 @@ public class VariableString implements Expression<String> {
 	}
 
 	private static boolean checkSentence(String s, int c, List<Object> string, Pair<Character, Character> brackets) {
-		if (c != 0)
+		System.out.println("checkSentence: " + s + " " + c + " " + brackets);
+		if (c != 0) {
 			string.add(s.substring(0, c));
+			System.out.println("string.add substr: " + string);
+		}
 		while (c != s.length()) {
 			int c2 = s.indexOf('%', c + 1);
 
@@ -259,7 +276,7 @@ public class VariableString implements Expression<String> {
 			while (c2 != -1 && (b = s.indexOf(brackets.getFirst().charValue(), a + 1)) != -1 && b < c2) {
 				a = nextVariableBracket(s, b + 1, brackets);
 				if (a == -1) {
-					Skript.error("Missing closing bracket '}' to end variable");
+					Skript.error("Missing closing bracket '" + brackets.getSecond() + "' to end variable");
 					return false;
 				}
 				c2 = s.indexOf('%', a + 1);
@@ -274,6 +291,7 @@ public class VariableString implements Expression<String> {
 					string.set(string.size() - 1, (String) string.get(string.size() - 1) + "%");
 				} else {
 					string.add("%");
+					System.out.println("string.add %: " + string);
 				}
 			} else {
 				RetainingLogHandler log = SkriptLogger.startRetainingLog();
@@ -286,6 +304,7 @@ public class VariableString implements Expression<String> {
 						return false;
 					} else {
 						string.add(expr);
+						System.out.println("string.add expr: " + string);
 					}
 					log.printLog();
 				} finally {
@@ -302,6 +321,7 @@ public class VariableString implements Expression<String> {
 					string.set(string.size() - 1, (String) string.get(string.size() - 1) + l);
 				} else { // Can't append, just add new part
 					string.add(l);
+					System.out.println("string.add l: " + string);
 				}
 			}
 		}

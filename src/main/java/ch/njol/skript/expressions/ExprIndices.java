@@ -31,6 +31,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.registrations.Comparators;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -76,7 +77,8 @@ public class ExprIndices extends SimpleExpression<String> {
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		sort = matchedPattern > 1;
 		descending = parseResult.mark == 1;
-		if (exprs[0] instanceof Variable<?> && ((Variable<?>) exprs[0]).isList()) {
+		if ((exprs[0] instanceof Variable<?> && ((Variable<?>) exprs[0]).isList()) ||
+			(exprs[0] instanceof LinkVariable<?, ?> && ((LinkVariable<?, ?>) exprs[0]).isList())) {
 			list = (Variable<?>) exprs[0];
 			return true;
 		}

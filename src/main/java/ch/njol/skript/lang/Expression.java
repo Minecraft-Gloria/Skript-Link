@@ -23,6 +23,7 @@ import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 import org.eclipse.jdt.annotation.Nullable;
@@ -295,7 +296,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 		// Slots must be transformed to item stacks when writing to variables
 		// Also, some types must be cloned
 		Object[] newDelta = null;
-		if (changed instanceof Variable) {
+		if (changed instanceof Variable | changed instanceof LinkVariable<?,?>) {
 			newDelta = new Object[delta.length];
 			for (int i = 0; i < delta.length; i++) {
 				Object value = delta[i];

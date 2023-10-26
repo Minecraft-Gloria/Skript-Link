@@ -21,6 +21,7 @@ package ch.njol.skript.effects;
 import java.util.Arrays;
 import java.util.logging.Level;
 
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -253,7 +254,8 @@ public class EffChange extends Effect {
 				return false;
 			}
 			
-			if (changed instanceof Variable && !((Variable<?>) changed).isLocal() && (mode == ChangeMode.SET || ((Variable<?>) changed).isList() && mode == ChangeMode.ADD)) {
+			if ((changed instanceof Variable && !((Variable<?>) changed).isLocal() && (mode == ChangeMode.SET || ((Variable<?>) changed).isList() && mode == ChangeMode.ADD)) ||
+				changed instanceof LinkVariable && !((LinkVariable<?, ?>) changed).isLocal() && (mode == ChangeMode.SET || ((LinkVariable<?, ?>) changed).isList() && mode == ChangeMode.ADD)) {
 				final ClassInfo<?> ci = Classes.getSuperClassInfo(ch.getReturnType());
 				if (ci.getC() != Object.class && ci.getSerializer() == null && ci.getSerializeAs() == null && !SkriptConfig.disableObjectCannotBeSavedWarnings.value()) {
 					if (getParser().getCurrentScript() != null) {

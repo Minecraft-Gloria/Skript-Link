@@ -20,6 +20,7 @@ package ch.njol.skript.expressions;
 
 import java.lang.reflect.Array;
 
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -72,7 +73,7 @@ public class ExprDifference extends SimpleExpression<Object> {
 		first = exprs[0];
 		second = exprs[1];
 		final ClassInfo<?> ci;
-		if (first instanceof Variable && second instanceof Variable) {
+		if ((first instanceof Variable && second instanceof Variable) || (first instanceof LinkVariable<?,?> && second instanceof LinkVariable<?,?>)) {
 			ci = DefaultClasses.OBJECT;
 		} else if (first instanceof Literal<?> && second instanceof Literal<?>) {
 			first = first.getConvertedExpression(Object.class);
@@ -90,9 +91,9 @@ public class ExprDifference extends SimpleExpression<Object> {
 				if (second == null)
 					return false;
 			}
-			if (first instanceof Variable) {
+			if (first instanceof Variable || first instanceof LinkVariable<?,?>) {
 				first = first.getConvertedExpression(second.getReturnType());
-			} else if (second instanceof Variable) {
+			} else if (second instanceof Variable || second instanceof LinkVariable<?,?>) {
 				second = second.getConvertedExpression(first.getReturnType());
 			}
 			assert first != null && second != null;

@@ -31,6 +31,7 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.Variable;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
+import me.marquez.variablelink.skript.addon.LinkVariable;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -85,7 +86,7 @@ public class ExprAmount extends SimpleExpression<Long> {
 				Skript.error("'" + expr.toString(null, false) + "' can only ever have one value at most, thus the 'amount of ...' expression is useless. Use '... exists' instead to find out whether the expression has a value.");
 				return false;
 			}
-			if (recursive && !(expr instanceof Variable<?>)) {
+			if (recursive && (!(expr instanceof Variable<?>) && !(expr instanceof LinkVariable<?,?>))) {
 				Skript.error("Getting the recursive size of a list only applies to variables, thus the '" + expr.toString(null, false) + "' expression is useless.");
 				return false;
 			}
