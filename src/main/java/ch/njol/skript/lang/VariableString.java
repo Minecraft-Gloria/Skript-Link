@@ -79,7 +79,7 @@ public class VariableString implements Expression<String> {
 	 * @param s Content for string.
 	 */
 	private VariableString(String s) {
-		System.out.println("new VariableString s");
+		//System.out.println("new VariableString s");
 		isSimple = true;
 		simpleUnformatted = s.replace("%%", "%"); // This doesn't contain variables, so this wasn't done in newInstance!
 		simple = Utils.replaceChatStyles(simpleUnformatted);
@@ -98,7 +98,7 @@ public class VariableString implements Expression<String> {
 	 * @param mode String mode.
 	 */
 	private VariableString(String orig, Object[] string, StringMode mode) {
-		System.out.println("new VariableString orig str mode");
+		//System.out.println("new VariableString orig str mode");
 //		new Throwable().printStackTrace();
 		this.orig = orig;
 		this.string = new Object[string.length];
@@ -192,7 +192,7 @@ public class VariableString implements Expression<String> {
 	 */
 	@Nullable
 	public static VariableString newInstance(String orig, StringMode mode) {
-		System.out.println("newInstance: " + orig + " " + mode);
+		//System.out.println("newInstance: " + orig + " " + mode);
 		if (mode != StringMode.VARIABLE_NAME && !isQuotedCorrectly(orig, false))
 			return null;
 		int n = StringUtils.count(orig, '%');
@@ -228,17 +228,17 @@ public class VariableString implements Expression<String> {
 		int c = s.indexOf('%');
 		if (c != -1) {
 			checkSentence(s, c, string);
-			System.out.println("after checkSentence: " + string);
+			//System.out.println("after checkSentence: " + string);
 			return makeResult(orig, s, string, mode);
 //			if(checkSentence(s, c, string, new Pair<>('<', '>'))) {
-//				System.out.println("after checkSentence: " + string);
-//				string.forEach(o -> System.out.println(o instanceof String));
+//				//System.out.println("after checkSentence: " + string);
+//				string.forEach(o -> //System.out.println(o instanceof String));
 //				return makeResult(orig, s, string, mode);
 //			}
 //			string.clear();
 //			if(checkSentence(s, c, string, new Pair<>('{', '}'))) {
-//				System.out.println("after checkSentence: " + string);
-//				string.forEach(o -> System.out.println(o instanceof String));
+//				//System.out.println("after checkSentence: " + string);
+//				string.forEach(o -> //System.out.println(o instanceof String));
 //				return makeResult(orig, s, string, mode);
 //			}
 //			return null;
@@ -250,7 +250,7 @@ public class VariableString implements Expression<String> {
 	}
 
 	private static VariableString makeResult(String orig, String s, List<Object> string, StringMode mode) {
-		System.out.println("makeResult: " + orig + " " + s + " " + string);
+		//System.out.println("makeResult: " + orig + " " + s + " " + string);
 		// Check if this isn't actually variable string, and return
 		if (string.size() == 1 && string.get(0) instanceof String)
 			return new VariableString(s);
@@ -267,10 +267,10 @@ public class VariableString implements Expression<String> {
 	}
 
 	private static boolean checkSentence(String s, int c, List<Object> string) {
-		System.out.println("checkSentence: " + s + " " + c + " ");
+		//System.out.println("checkSentence: " + s + " " + c + " ");
 		if (c != 0) {
 			string.add(s.substring(0, c));
-			System.out.println("string.add substr: " + string);
+			//System.out.println("string.add substr: " + string);
 		}
 		while (c != s.length()) {
 			int c2 = s.indexOf('%', c + 1);
@@ -296,12 +296,12 @@ public class VariableString implements Expression<String> {
 					string.set(string.size() - 1, (String) string.get(string.size() - 1) + "%");
 				} else {
 					string.add("%");
-					System.out.println("string.add %: " + string);
+					//System.out.println("string.add %: " + string);
 				}
 			} else {
 				RetainingLogHandler log = SkriptLogger.startRetainingLog();
 				try {
-					System.out.println("check sentence: new SkriptParser: " + s.substring(c + 1, c2));
+					//System.out.println("check sentence: new SkriptParser: " + s.substring(c + 1, c2));
 					Expression<?> expr =
 						new SkriptParser(s.substring(c + 1, c2), SkriptParser.PARSE_EXPRESSIONS, ParseContext.DEFAULT)
 							.parseExpression(Object.class);
@@ -310,7 +310,7 @@ public class VariableString implements Expression<String> {
 						return false;
 					} else {
 						string.add(expr);
-						System.out.println("string.add expr: " + string);
+						//System.out.println("string.add expr: " + string);
 					}
 					log.printLog();
 				} finally {
@@ -327,7 +327,7 @@ public class VariableString implements Expression<String> {
 					string.set(string.size() - 1, (String) string.get(string.size() - 1) + l);
 				} else { // Can't append, just add new part
 					string.add(l);
-					System.out.println("string.add l: " + string);
+					//System.out.println("string.add l: " + string);
 				}
 			}
 		}

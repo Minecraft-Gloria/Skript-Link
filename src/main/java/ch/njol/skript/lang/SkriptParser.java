@@ -282,11 +282,11 @@ public class SkriptParser {
 	 */
 	@Nullable
 	private static <T> Variable<T> parseVariable(final String expr, final Class<? extends T>[] returnTypes) {
-		System.out.println("\n\n\n\n\n\n");
+		//System.out.println("\n\n\n\n\n\n");
 //		new Throwable().printStackTrace();
-		System.out.println("parseVariable");
-		System.out.println(expr);
-		System.out.println(varPattern.matcher(expr));
+		//System.out.println("parseVariable");
+		//System.out.println(expr);
+		//System.out.println(varPattern.matcher(expr));
 		if (varPattern.matcher(expr).matches()) {
 			String variableName = "" + expr.substring(expr.indexOf('{') + 1, expr.lastIndexOf('}'));
 			boolean inExpression = false;
@@ -311,13 +311,13 @@ public class SkriptParser {
 
 	@Nullable
 	private static <T> LinkVariable<T, ?> parseLinkVariable(final String expr, final Class<? extends T>[] returnTypes) {
-		System.out.println("\n\n\n\n\n\n");
+		//System.out.println("\n\n\n\n\n\n");
 //		new Throwable().printStackTrace();
-		System.out.println("parseLinkVariable");
-		System.out.println(expr);
-		System.out.println(linkVarPattern.matcher(expr));
+		//System.out.println("parseLinkVariable");
+		//System.out.println(expr);
+		//System.out.println(linkVarPattern.matcher(expr));
 		if (linkVarPattern.matcher(expr).matches()) {
-			System.out.println("pattern");
+			//System.out.println("pattern");
 			String variableName = "" + expr.substring(expr.indexOf('<') + 1, expr.lastIndexOf('>'));
 			boolean inExpression = false;
 			int variableDepth = 0;
@@ -332,11 +332,11 @@ public class SkriptParser {
 				}
 
 				if (!inExpression && (c == '<' || c == '>')) {
-					System.out.println("return null");
+					//System.out.println("return null");
 					return null;
 				}
 			}
-			System.out.println("newInstance");
+			//System.out.println("newInstance");
 			return LinkVariable.newInstance(variableName, returnTypes);
 		}
 		return null;
@@ -355,7 +355,7 @@ public class SkriptParser {
 		try {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
 //				new Throwable().printStackTrace();
-				System.out.println("parseSingleExpr ParseContext.DEFAULT || ParseContext.EVENT");
+				//System.out.println("parseSingleExpr ParseContext.DEFAULT || ParseContext.EVENT");
 				final LinkVariable<? extends T, ?> linkVar = parseLinkVariable(expr, types);
 				if (linkVar != null) {
 					if ((flags & PARSE_EXPRESSIONS) == 0) {
@@ -453,7 +453,7 @@ public class SkriptParser {
 	
 	@Nullable
 	private final Expression<?> parseSingleExpr(final boolean allowUnparsedLiteral, @Nullable final LogEntry error, final ExprInfo vi) {
-		System.out.println("parseSingleExpr: " + expr);
+		//System.out.println("parseSingleExpr: " + expr);
 		if (expr.isEmpty()) // Empty expressions return nothing, obviously
 			return null;
 		
@@ -502,7 +502,7 @@ public class SkriptParser {
 			if (context == ParseContext.DEFAULT || context == ParseContext.EVENT) {
 				// Attempt to parse variable first
 				if (onlySingular || onlyPlural) { // No mixed plurals/singulars possible
-					System.out.println("TEST 509");
+					//System.out.println("TEST 509");
 					final LinkVariable<?, ?> linkVar = parseLinkVariable(expr, nonNullTypes);
 					if (linkVar != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
@@ -546,7 +546,7 @@ public class SkriptParser {
 						return null;
 					}
 				} else { // Mixed plurals/singulars
-					System.out.println("parseSingleExpr Mixed plurals/singulars");
+					//System.out.println("parseSingleExpr Mixed plurals/singulars");
 					final LinkVariable<?, ?> linkVar = parseLinkVariable(expr, types);
 					if (linkVar != null) { // Parsing succeeded, we have a variable
 						// If variables cannot be used here, it is now allowed
@@ -740,7 +740,7 @@ public class SkriptParser {
 			final List<int[]> pieces = new ArrayList<>();
 			{
 				final Matcher m = listSplitPattern.matcher(expr);
-				System.out.println("parseExpr m: " + m);
+				//System.out.println("parseExpr m: " + m);
 				int i = 0, j = 0;
 				for (; i >= 0 && i <= expr.length(); i = next(expr, i, context)) {
 					if (i == expr.length() || m.region(i, expr.length()).lookingAt()) {
@@ -750,10 +750,10 @@ public class SkriptParser {
 						j = i = m.end();
 					}
 				}
-				System.out.println("parseExpr i: " + i + " " + expr.length());
+				//System.out.println("parseExpr i: " + i + " " + expr.length());
 				if (i != expr.length()) {
 					assert i == -1 && context != ParseContext.COMMAND : i + "; " + expr;
-					System.out.println("T");
+					//System.out.println("T");
 					log.printError("Invalid brackets/variables/text in '" + expr + "'", ErrorQuality.NOT_AN_EXPRESSION);
 					return null;
 				}
@@ -855,7 +855,7 @@ public class SkriptParser {
 		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
 			// Attempt to parse a single expression
-			System.out.println("TEST 836");
+			//System.out.println("TEST 836");
 			final Expression<?> r = parseSingleExpr(true, null, vi);
 			if (r != null) {
 				log.printLog();
@@ -881,7 +881,7 @@ public class SkriptParser {
 				}
 				if (i != expr.length()) {
 					assert i == -1 && context != ParseContext.COMMAND : i + "; " + expr;
-					System.out.println("T2");
+					//System.out.println("T2");
 					log.printError("Invalid brackets/variables/text in '" + expr + "'", ErrorQuality.NOT_AN_EXPRESSION);
 					return null;
 				}
