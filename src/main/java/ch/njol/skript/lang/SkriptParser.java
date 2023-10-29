@@ -319,6 +319,12 @@ public class SkriptParser {
 		if (linkVarPattern.matcher(expr).matches()) {
 			//System.out.println("pattern");
 			String variableName = "" + expr.substring(expr.indexOf('<') + 1, expr.lastIndexOf('>'));
+			String player = "";
+			if(variableName.contains("'")) {
+				String[] split = variableName.split("'", 2);
+				player = split[0] + "'";
+				variableName = split[1];
+			}
 			boolean inExpression = false;
 			int variableDepth = 0;
 			for (char c : variableName.toCharArray()) {
@@ -331,13 +337,14 @@ public class SkriptParser {
 						variableDepth--;
 				}
 
-//				if (!inExpression && (c == '<' || c == '>')) {
-//					//System.out.println("return null");
-//					return null;
-//				}
+				if (!inExpression && (c == '<' || c == '>')) {
+
+					//System.out.println("return null");
+					return null;
+				}
 			}
 			//System.out.println("newInstance");
-			return LinkVariable.newInstance(variableName, returnTypes);
+			return LinkVariable.newInstance(player + variableName, returnTypes);
 		}
 		return null;
 	}
