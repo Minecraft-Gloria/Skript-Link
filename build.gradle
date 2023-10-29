@@ -52,12 +52,12 @@ task checkAliases {
 
 task jar(overwrite: true, type: ShadowJar) {
 	dependsOn checkAliases
-	archiveName jarName ? 'Skript-2.6.4-Link.jar' : jarName
+	archiveName jarName ? 'Skript-2.6.4-Link-2.jar' : jarName
 	from sourceSets.main.output
 }
 
 task build(overwrite: true, type: ShadowJar) {
-	archiveName jarName ? 'Skript-2.6.4-Link.jar' : jarName
+	archiveName jarName ? 'Skript-2.6.4-Link-2.jar' : jarName
 	from sourceSets.main.output
 }
 
