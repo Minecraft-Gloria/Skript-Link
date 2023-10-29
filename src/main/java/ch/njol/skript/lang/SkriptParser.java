@@ -331,10 +331,10 @@ public class SkriptParser {
 						variableDepth--;
 				}
 
-				if (!inExpression && (c == '<' || c == '>')) {
-					//System.out.println("return null");
-					return null;
-				}
+//				if (!inExpression && (c == '<' || c == '>')) {
+//					//System.out.println("return null");
+//					return null;
+//				}
 			}
 			//System.out.println("newInstance");
 			return LinkVariable.newInstance(variableName, returnTypes);
